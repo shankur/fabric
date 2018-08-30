@@ -21,6 +21,7 @@ type TransactionContext struct {
 	ResponseNotifier     chan *pb.ChaincodeMessage
 	TXSimulator          ledger.TxSimulator
 	HistoryQueryExecutor ledger.HistoryQueryExecutor
+	Height		     uint64
 
 	// tracks open iterators used for range queries
 	queryMutex          sync.Mutex

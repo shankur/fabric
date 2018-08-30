@@ -73,7 +73,7 @@ func (txmgr *LockBasedTxMgr) GetLastSavepoint() (*version.Height, error) {
 // NewQueryExecutor implements method in interface `txmgmt.TxMgr`
 func (txmgr *LockBasedTxMgr) NewQueryExecutor(txid string) (ledger.QueryExecutor, error) {
 	qe := newQueryExecutor(txmgr, txid)
-	txmgr.commitRWLock.RLock()
+	//txmgr.commitRWLock.RLock()
 	return qe, nil
 }
 
@@ -84,7 +84,7 @@ func (txmgr *LockBasedTxMgr) NewTxSimulator(txid string) (ledger.TxSimulator, er
 	if err != nil {
 		return nil, err
 	}
-	txmgr.commitRWLock.RLock()
+//	txmgr.commitRWLock.RLock()
 	return s, nil
 }
 

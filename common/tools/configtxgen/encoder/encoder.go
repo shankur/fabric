@@ -205,6 +205,7 @@ func NewOrdererGroup(conf *genesisconfig.Orderer) (*cb.ConfigGroup, error) {
 		conf.BatchSize.MaxMessageCount,
 		conf.BatchSize.AbsoluteMaxBytes,
 		conf.BatchSize.PreferredMaxBytes,
+		conf.BatchSize.MaxUniqueKeys,
 	), channelconfig.AdminsPolicyKey)
 	addValue(ordererGroup, channelconfig.BatchTimeoutValue(conf.BatchTimeout.String()), channelconfig.AdminsPolicyKey)
 	addValue(ordererGroup, channelconfig.ChannelRestrictionsValue(conf.MaxChannels), channelconfig.AdminsPolicyKey)

@@ -145,6 +145,9 @@ func (oc *OrdererConfig) validateBatchSize() error {
 	if oc.protos.BatchSize.PreferredMaxBytes == 0 {
 		return fmt.Errorf("Attempted to set the batch size preferred max bytes to an invalid value: 0")
 	}
+	if oc.protos.BatchSize.MaxUniqueKeys == 0 {
+		return fmt.Errorf("Attempted to set the batch size max unique keys to an invalid value: 0")
+	}
 	if oc.protos.BatchSize.PreferredMaxBytes > oc.protos.BatchSize.AbsoluteMaxBytes {
 		return fmt.Errorf("Attempted to set the batch size preferred max bytes (%v) greater than the absolute max bytes (%v).", oc.protos.BatchSize.PreferredMaxBytes, oc.protos.BatchSize.AbsoluteMaxBytes)
 	}

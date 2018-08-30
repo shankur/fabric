@@ -44,7 +44,7 @@ type Registry interface {
 
 // An Invoker invokes chaincode.
 type Invoker interface {
-	Invoke(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter) (*pb.ChaincodeMessage, error)
+	Invoke(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter, height uint64) (*pb.ChaincodeMessage, error)
 }
 
 // SystemCCProvider provides system chaincode metadata.
@@ -61,7 +61,7 @@ type TransactionRegistry interface {
 
 // A ContextRegistry is responsible for managing transaction contexts.
 type ContextRegistry interface {
-	Create(ctx context.Context, chainID, txID string, signedProp *pb.SignedProposal, proposal *pb.Proposal) (*TransactionContext, error)
+	Create(ctx context.Context, chainID, txID string, signedProp *pb.SignedProposal, proposal *pb.Proposal, height uint64) (*TransactionContext, error)
 	Get(chainID, txID string) *TransactionContext
 	Delete(chainID, txID string)
 	Close()
@@ -532,6 +532,7 @@ func (h *Handler) registerTxid(msg *pb.ChaincodeMessage) bool {
 // Handles query to ledger to get state
 func (h *Handler) HandleGetState(msg *pb.ChaincodeMessage, txContext *TransactionContext) (*pb.ChaincodeMessage, error) {
 	key := string(msg.Payload)
+	height := uint64(txContext.Height)
 	getState := &pb.GetState{}
 	err := proto.Unmarshal(msg.Payload, getState)
 	if err != nil {
@@ -543,9 +544,9 @@ func (h *Handler) HandleGetState(msg *pb.ChaincodeMessage, txContext *Transactio
 
 	var res []byte
 	if isCollectionSet(getState.Collection) {
-		res, err = txContext.TXSimulator.GetPrivateData(chaincodeName, getState.Collection, getState.Key)
+		res, err = txContext.TXSimulator.GetPrivateData(chaincodeName, getState.Collection, getState.Key, height)
 	} else {
-		res, err = txContext.TXSimulator.GetState(chaincodeName, getState.Key)
+		res, err = txContext.TXSimulator.GetState(chaincodeName, getState.Key, height)
 	}
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -623,6 +624,7 @@ func (h *Handler) HandleQueryStateNext(msg *pb.ChaincodeMessage, txContext *Tran
 
 	return &pb.ChaincodeMessage{Type: pb.ChaincodeMessage_RESPONSE, Payload: payloadBytes, Txid: msg.Txid, ChannelId: msg.ChannelId}, nil
 }
+
 
 // Handles the closing of a state iterator
 func (h *Handler) HandleQueryStateClose(msg *pb.ChaincodeMessage, txContext *TransactionContext) (*pb.ChaincodeMessage, error) {
@@ -807,6 +809,7 @@ func (h *Handler) HandleInvokeChaincode(msg *pb.ChaincodeMessage, txContext *Tra
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshal failed")
 	}
+	height := uint64(txContext.Height)
 
 	// Get the chaincodeID to invoke. The chaincodeID to be called may
 	// contain composite info like "chaincode-name:version/channel-name".
@@ -885,7 +888,7 @@ func (h *Handler) HandleInvokeChaincode(msg *pb.ChaincodeMessage, txContext *Tra
 	cciSpec := &pb.ChaincodeInvocationSpec{ChaincodeSpec: chaincodeSpec}
 
 	// Execute the chaincode... this CANNOT be an init at least for now
-	responseMessage, err := h.Invoker.Invoke(ctxt, cccid, cciSpec)
+	responseMessage, err := h.Invoker.Invoke(ctxt, cccid, cciSpec, height)
 	if err != nil {
 		return nil, errors.Wrap(err, "execute failed")
 	}
@@ -900,11 +903,11 @@ func (h *Handler) HandleInvokeChaincode(msg *pb.ChaincodeMessage, txContext *Tra
 	return &pb.ChaincodeMessage{Type: pb.ChaincodeMessage_RESPONSE, Payload: res, Txid: msg.Txid, ChannelId: msg.ChannelId}, nil
 }
 
-func (h *Handler) Execute(ctxt context.Context, cccid *ccprovider.CCContext, msg *pb.ChaincodeMessage, timeout time.Duration) (*pb.ChaincodeMessage, error) {
+func (h *Handler) Execute(ctxt context.Context, cccid *ccprovider.CCContext, msg *pb.ChaincodeMessage, timeout time.Duration, height uint64) (*pb.ChaincodeMessage, error) {
 	chaincodeLogger.Debugf("Entry")
 	defer chaincodeLogger.Debugf("Exit")
 
-	txctx, err := h.TXContexts.Create(ctxt, msg.ChannelId, msg.Txid, cccid.SignedProposal, cccid.Proposal)
+	txctx, err := h.TXContexts.Create(ctxt, msg.ChannelId, msg.Txid, cccid.SignedProposal, cccid.Proposal, height)
 	if err != nil {
 		return nil, err
 	}
@@ -963,3 +966,4 @@ func (s State) String() string {
 		return "UNKNOWN"
 	}
 }
+

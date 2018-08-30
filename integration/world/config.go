@@ -162,6 +162,7 @@ func GenerateBasicConfig(ordererType string, numPeers, numPeerOrgs int, testDir 
 			MaxMessageCount:   1,
 			AbsoluteMaxBytes:  (uint32)(98 * 1024 * 1024),
 			PreferredMaxBytes: (uint32)(512 * 1024),
+			MaxUniqueKeys:     (uint32(1024)),
 		},
 		Kafka: localconfig.Kafka{
 			Brokers: brokers,

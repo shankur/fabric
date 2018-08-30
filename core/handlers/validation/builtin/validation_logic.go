@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"math"
 
 	"github.com/hyperledger/fabric/core/chaincode/platforms/ccmetadata"
 
@@ -701,7 +702,7 @@ func (vscc *ValidatorOneValidSignature) getInstantiatedCC(chid, ccid string) (cd
 	}
 	defer qe.Done()
 	channelState := &state{qe}
-	bytes, err := channelState.GetState("lscc", ccid)
+	bytes, err := channelState.GetState("lscc", ccid, uint64(math.MaxUint64))
 	if err != nil {
 		err = fmt.Errorf("could not retrieve state for chaincode %s on channel %s, error %s", ccid, chid, err)
 		return
@@ -762,8 +763,8 @@ type state struct {
 }
 
 // GetState retrieves the value for the given key in the given namespace
-func (s *state) GetState(namespace string, key string) ([]byte, error) {
-	values, err := s.GetStateMultipleKeys(namespace, []string{key})
+func (s *state) GetState(namespace string, key string, height uint64) ([]byte, error) {
+	values, err := s.GetStateMultipleKeys(namespace, []string{key}, height)
 	if err != nil {
 		return nil, err
 	}

@@ -131,3 +131,6 @@ EOF
 
 # finally, remove our warning so the user knows this was successful
 rm /etc/motd
+
+# add user to docker group
+sudo usermod -a -G docker vagrant

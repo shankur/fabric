@@ -13,7 +13,7 @@ import (
 // State defines interaction with the world state
 type State interface {
 	// GetStateMultipleKeys gets the values for multiple keys in a single call
-	GetStateMultipleKeys(namespace string, keys []string) ([][]byte, error)
+	GetStateMultipleKeys(namespace string, keys []string, height uint64) ([][]byte, error)
 
 	// GetStateRangeScanIterator returns an iterator that contains all the key-values between given key ranges.
 	// startKey is included in the results and endKey is excluded. An empty startKey refers to the first available key

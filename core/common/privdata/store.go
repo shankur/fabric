@@ -8,6 +8,7 @@ package privdata
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/ledger"
@@ -29,7 +30,7 @@ type Support interface {
 // StateGetter retrieves data from the state
 type State interface {
 	// GetState retrieves the value for the given key in the given namespace
-	GetState(namespace string, key string) ([]byte, error)
+	GetState(namespace string, key string, height uint64) ([]byte, error)
 }
 
 type NoSuchCollectionError common.CollectionCriteria
@@ -61,7 +62,7 @@ func (c *simpleCollectionStore) retrieveCollectionConfigPackage(cc common.Collec
 
 // RetrieveCollectionConfigPackageFromState retrieves the collection config package from the given key from the given state
 func RetrieveCollectionConfigPackageFromState(cc common.CollectionCriteria, state State) (*common.CollectionConfigPackage, error) {
-	cb, err := state.GetState("lscc", BuildCollectionKVSKey(cc.Namespace))
+	cb, err := state.GetState("lscc", BuildCollectionKVSKey(cc.Namespace), uint64(math.MaxUint64))
 	if err != nil {
 		return nil, errors.WithMessage(err, fmt.Sprintf("error while retrieving collection for collection criteria %#v", cc))
 	}

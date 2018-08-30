@@ -496,9 +496,9 @@ type ChaincodeProvider interface {
 	// done method once it is no longer useful
 	GetContext(ledger ledger.PeerLedger, txid string) (context.Context, ledger.TxSimulator, error)
 	// ExecuteChaincode executes the chaincode given context and args
-	ExecuteChaincode(ctxt context.Context, cccid *CCContext, args [][]byte) (*pb.Response, *pb.ChaincodeEvent, error)
+	ExecuteChaincode(ctxt context.Context, cccid *CCContext, args [][]byte, height uint64) (*pb.Response, *pb.ChaincodeEvent, error)
 	// Execute executes the chaincode given context and spec (invocation or deploy)
-	Execute(ctxt context.Context, cccid *CCContext, spec ChaincodeSpecGetter) (*pb.Response, *pb.ChaincodeEvent, error)
+	Execute(ctxt context.Context, cccid *CCContext, spec ChaincodeSpecGetter, height uint64) (*pb.Response, *pb.ChaincodeEvent, error)
 	// Stop stops the chaincode given context and deployment spec
 	Stop(ctxt context.Context, cccid *CCContext, spec *pb.ChaincodeDeploymentSpec) error
 }

@@ -108,6 +108,7 @@ const (
 	// be less than 13 KB.
 	AbsoluteMaxBytes  = 16 // KB
 	PreferredMaxBytes = 10 // KB
+	MaxUniqueKeys     = 1024
 	ChannelProfile    = genesisconfig.SampleSingleMSPChannelProfile
 )
 
@@ -119,6 +120,7 @@ var envvars = map[string]string{
 	genesisconfig.Prefix + "_ORDERER_BATCHSIZE_MAXMESSAGECOUNT":   strconv.Itoa(MaxMessageCount),
 	genesisconfig.Prefix + "_ORDERER_BATCHSIZE_ABSOLUTEMAXBYTES":  strconv.Itoa(AbsoluteMaxBytes) + " KB",
 	genesisconfig.Prefix + "_ORDERER_BATCHSIZE_PREFERREDMAXBYTES": strconv.Itoa(PreferredMaxBytes) + " KB",
+	genesisconfig.Prefix + "_ORDERER_BATCHSIZE_MAXUNIQUEKEYS":     strconv.Itoa(MaxUniqueKeys),
 	genesisconfig.Prefix + "_ORDERER_KAFKA_BROKERS":               "[localhost:9092]",
 }
 

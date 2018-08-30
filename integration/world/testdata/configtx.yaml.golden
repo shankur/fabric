@@ -67,6 +67,7 @@ Profiles:
         MaxMessageCount: 1
         AbsoluteMaxBytes: 102760448
         PreferredMaxBytes: 524288
+        MaxUniqueKeys: 1024
       Kafka:
         Brokers: []
       Organizations:

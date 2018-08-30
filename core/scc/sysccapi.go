@@ -9,6 +9,7 @@ package scc
 import (
 	"errors"
 	"fmt"
+	"math"
 
 	"golang.org/x/net/context"
 
@@ -131,7 +132,7 @@ func (syscc *SystemChaincode) deploySysCC(chainID string, ccprov ccprovider.Chai
 
 	cccid := ccprovider.NewCCContext(chainID, chaincodeDeploymentSpec.ChaincodeSpec.ChaincodeId.Name, version, txid, true, nil, nil)
 
-	resp, _, err := ccprov.Execute(ctxt, cccid, chaincodeDeploymentSpec)
+	resp, _, err := ccprov.Execute(ctxt, cccid, chaincodeDeploymentSpec, uint64(math.MaxUint64))
 	if err == nil && resp.Status != shim.OK {
 		err = errors.New(resp.Message)
 	}

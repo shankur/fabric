@@ -49,7 +49,7 @@ func contextID(chainID, txID string) string {
 // Create creates a new TransactionContext for the specified chain and
 // transaction ID. An error is returned when a transaction context has already
 // been created for the specified chain and transaction ID.
-func (c *TransactionContexts) Create(ctx context.Context, chainID, txID string, signedProp *pb.SignedProposal, proposal *pb.Proposal) (*TransactionContext, error) {
+func (c *TransactionContexts) Create(ctx context.Context, chainID, txID string, signedProp *pb.SignedProposal, proposal *pb.Proposal, height uint64) (*TransactionContext, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -62,6 +62,7 @@ func (c *TransactionContexts) Create(ctx context.Context, chainID, txID string, 
 		ChainID:              chainID,
 		SignedProp:           signedProp,
 		Proposal:             proposal,
+		Height:	              height,
 		ResponseNotifier:     make(chan *pb.ChaincodeMessage, 1),
 		TXSimulator:          getTxSimulator(ctx),
 		HistoryQueryExecutor: getHistoryQueryExecutor(ctx),

@@ -68,7 +68,7 @@ func (listCCs Enumerate) Enumerate() ([]chaincode.InstalledChaincode, error) {
 // Query queries the state
 type Query interface {
 	// GetState gets the value for given namespace and key. For a chaincode, the namespace corresponds to the chaincodeId
-	GetState(namespace string, key string) ([]byte, error)
+	GetState(namespace string, key string, height uint64) ([]byte, error)
 
 	// Done releases resources occupied by the QueryExecutor
 	Done()

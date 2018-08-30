@@ -45,7 +45,7 @@ func (c *CCProviderImpl) GetContext(ledger ledger.PeerLedger, txid string) (cont
 }
 
 // ExecuteChaincode executes the chaincode specified in the context with the specified arguments
-func (c *CCProviderImpl) ExecuteChaincode(ctxt context.Context, cccid *ccprovider.CCContext, args [][]byte) (*pb.Response, *pb.ChaincodeEvent, error) {
+func (c *CCProviderImpl) ExecuteChaincode(ctxt context.Context, cccid *ccprovider.CCContext, args [][]byte, height uint64) (*pb.Response, *pb.ChaincodeEvent, error) {
 	invocationSpec := &pb.ChaincodeInvocationSpec{
 		ChaincodeSpec: &pb.ChaincodeSpec{
 			Type:        pb.ChaincodeSpec_GOLANG,
@@ -53,12 +53,12 @@ func (c *CCProviderImpl) ExecuteChaincode(ctxt context.Context, cccid *ccprovide
 			Input:       &pb.ChaincodeInput{Args: args},
 		},
 	}
-	return c.cs.Execute(ctxt, cccid, invocationSpec)
+	return c.cs.Execute(ctxt, cccid, invocationSpec, height)
 }
 
 // Execute executes the chaincode given context and spec (invocation or deploy)
-func (c *CCProviderImpl) Execute(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter) (*pb.Response, *pb.ChaincodeEvent, error) {
-	return c.cs.Execute(ctxt, cccid, spec)
+func (c *CCProviderImpl) Execute(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter, height uint64) (*pb.Response, *pb.ChaincodeEvent, error) {
+	return c.cs.Execute(ctxt, cccid, spec, height)
 }
 
 // Stop stops the chaincode given context and spec

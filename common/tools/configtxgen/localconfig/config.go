@@ -183,6 +183,7 @@ type BatchSize struct {
 	MaxMessageCount   uint32 `yaml:"MaxMessageCount"`
 	AbsoluteMaxBytes  uint32 `yaml:"AbsoluteMaxBytes"`
 	PreferredMaxBytes uint32 `yaml:"PreferredMaxBytes"`
+	MaxUniqueKeys     uint32 `yaml:"MaxUniqueKeys"`
 }
 
 // Kafka contains configuration for the Kafka-based orderer.
@@ -199,6 +200,7 @@ var genesisDefaults = TopLevel{
 			MaxMessageCount:   10,
 			AbsoluteMaxBytes:  10 * 1024 * 1024,
 			PreferredMaxBytes: 512 * 1024,
+			MaxUniqueKeys:     1024,
 		},
 		Kafka: Kafka{
 			Brokers: []string{"127.0.0.1:9092"},
@@ -380,6 +382,9 @@ func (oc *Orderer) completeInitialization() {
 		case oc.BatchSize.PreferredMaxBytes == 0:
 			logger.Infof("Orderer.BatchSize.PreferredMaxBytes unset, setting to %s", genesisDefaults.Orderer.BatchSize.PreferredMaxBytes)
 			oc.BatchSize.PreferredMaxBytes = genesisDefaults.Orderer.BatchSize.PreferredMaxBytes
+		case oc.BatchSize.MaxUniqueKeys == 0:
+			logger.Infof("Orderer.BatchSize.MaxUniqueKeys unset, setting to %s", genesisDefaults.Orderer.BatchSize.MaxUniqueKeys)
+			oc.BatchSize.MaxUniqueKeys = genesisDefaults.Orderer.BatchSize.MaxUniqueKeys
 		case oc.Kafka.Brokers == nil:
 			logger.Infof("Orderer.Kafka.Brokers unset, setting to %v", genesisDefaults.Orderer.Kafka.Brokers)
 			oc.Kafka.Brokers = genesisDefaults.Orderer.Kafka.Brokers

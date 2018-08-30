@@ -39,11 +39,13 @@ func TestNormalBatch(t *testing.T) {
 	maxMessageCount := uint32(2)
 	absoluteMaxBytes := uint32(1000)
 	preferredMaxBytes := uint32(100)
+	maxUniqueKeys := uint32(1024)
 	mockConfig := &mock.OrdererConfig{}
 	mockConfig.BatchSizeReturns(&ab.BatchSize{
 		MaxMessageCount:   maxMessageCount,
 		AbsoluteMaxBytes:  absoluteMaxBytes,
 		PreferredMaxBytes: preferredMaxBytes,
+		MaxUniqueKeys:     maxUniqueKeys,
 	})
 
 	mockConfigFetcher := &mock.OrdererConfigFetcher{}
@@ -68,12 +70,14 @@ func TestBatchSizePreferredMaxBytesOverflow(t *testing.T) {
 
 	// set message count > 9
 	maxMessageCount := uint32(20)
+	maxUniqueKeys := uint32(1024)
 
 	mockConfig := &mock.OrdererConfig{}
 	mockConfig.BatchSizeReturns(&ab.BatchSize{
 		MaxMessageCount:   maxMessageCount,
 		AbsoluteMaxBytes:  preferredMaxBytes * 2,
 		PreferredMaxBytes: preferredMaxBytes,
+		MaxUniqueKeys:     maxUniqueKeys,
 	})
 
 	mockConfigFetcher := &mock.OrdererConfigFetcher{}
@@ -109,12 +113,14 @@ func TestBatchSizePreferredMaxBytesOverflowNoPending(t *testing.T) {
 
 	// set message count > 1
 	maxMessageCount := uint32(20)
+	maxUniqueKeys := uint32(1024)
 
 	mockConfig := &mock.OrdererConfig{}
 	mockConfig.BatchSizeReturns(&ab.BatchSize{
 		MaxMessageCount:   maxMessageCount,
 		AbsoluteMaxBytes:  preferredMaxBytes * 3,
 		PreferredMaxBytes: preferredMaxBytes,
+		MaxUniqueKeys:     maxUniqueKeys,
 	})
 
 	mockConfigFetcher := &mock.OrdererConfigFetcher{}

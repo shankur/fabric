@@ -101,7 +101,7 @@ func (v *Validator) ValidateAndPrepareBatch(block *valinternal.Block, doMVCCVali
 	for _, tx := range block.Txs {
 		var validationCode peer.TxValidationCode
 		var err error
-		if validationCode, err = v.validateEndorserTX(tx.RWSet, doMVCCValidation, updates); err != nil {
+		if validationCode, err = v.validateEndorserTX(tx.RWSet, doMVCCValidation); err != nil {
 			return nil, err
 		}
 
@@ -121,39 +121,38 @@ func (v *Validator) ValidateAndPrepareBatch(block *valinternal.Block, doMVCCVali
 // validateEndorserTX validates endorser transaction
 func (v *Validator) validateEndorserTX(
 	txRWSet *rwsetutil.TxRwSet,
-	doMVCCValidation bool,
-	updates *valinternal.PubAndHashUpdates) (peer.TxValidationCode, error) {
+	doMVCCValidation bool) (peer.TxValidationCode, error) {
 
 	var validationCode = peer.TxValidationCode_VALID
 	var err error
 	//mvccvalidation, may invalidate transaction
 	if doMVCCValidation {
-		validationCode, err = v.validateTx(txRWSet, updates)
+		validationCode, err = v.validateTx(txRWSet)
 	}
 	return validationCode, err
 }
 
-func (v *Validator) validateTx(txRWSet *rwsetutil.TxRwSet, updates *valinternal.PubAndHashUpdates) (peer.TxValidationCode, error) {
+func (v *Validator) validateTx(txRWSet *rwsetutil.TxRwSet) (peer.TxValidationCode, error) {
 	// Uncomment the following only for local debugging. Don't want to print data in the logs in production
 	//logger.Debugf("validateTx - validating txRWSet: %s", spew.Sdump(txRWSet))
 	for _, nsRWSet := range txRWSet.NsRwSets {
 		ns := nsRWSet.NameSpace
 		// Validate public reads
-		if valid, err := v.validateReadSet(ns, nsRWSet.KvRwSet.Reads, updates.PubUpdates); !valid || err != nil {
+		if valid, err := v.validateReadSet(ns, nsRWSet.KvRwSet.Reads); !valid || err != nil {
 			if err != nil {
 				return peer.TxValidationCode(-1), err
 			}
 			return peer.TxValidationCode_MVCC_READ_CONFLICT, nil
 		}
 		// Validate range queries for phantom items
-		if valid, err := v.validateRangeQueries(ns, nsRWSet.KvRwSet.RangeQueriesInfo, updates.PubUpdates); !valid || err != nil {
+		if valid, err := v.validateRangeQueries(ns, nsRWSet.KvRwSet.RangeQueriesInfo); !valid || err != nil {
 			if err != nil {
 				return peer.TxValidationCode(-1), err
 			}
 			return peer.TxValidationCode_PHANTOM_READ_CONFLICT, nil
 		}
 		// Validate hashes for private reads
-		if valid, err := v.validateNsHashedReadSets(ns, nsRWSet.CollHashedRwSets, updates.HashUpdates); !valid || err != nil {
+		if valid, err := v.validateNsHashedReadSets(ns, nsRWSet.CollHashedRwSets); !valid || err != nil {
 			if err != nil {
 				return peer.TxValidationCode(-1), err
 			}
@@ -166,9 +165,9 @@ func (v *Validator) validateTx(txRWSet *rwsetutil.TxRwSet, updates *valinternal.
 ////////////////////////////////////////////////////////////////////////////////
 /////                 Validation of public read-set
 ////////////////////////////////////////////////////////////////////////////////
-func (v *Validator) validateReadSet(ns string, kvReads []*kvrwset.KVRead, updates *privacyenabledstate.PubUpdateBatch) (bool, error) {
+func (v *Validator) validateReadSet(ns string, kvReads []*kvrwset.KVRead) (bool, error) {
 	for _, kvRead := range kvReads {
-		if valid, err := v.validateKVRead(ns, kvRead, updates); !valid || err != nil {
+		if valid, err := v.validateKVRead(ns, kvRead); !valid || err != nil {
 			return valid, err
 		}
 	}
@@ -178,10 +177,10 @@ func (v *Validator) validateReadSet(ns string, kvReads []*kvrwset.KVRead, update
 // validateKVRead performs mvcc check for a key read during transaction simulation.
 // i.e., it checks whether a key/version combination is already updated in the statedb (by an already committed block)
 // or in the updates (by a preceding valid transaction in the current block)
-func (v *Validator) validateKVRead(ns string, kvRead *kvrwset.KVRead, updates *privacyenabledstate.PubUpdateBatch) (bool, error) {
-	if updates.Exists(ns, kvRead.Key) {
-		return false, nil
-	}
+func (v *Validator) validateKVRead(ns string, kvRead *kvrwset.KVRead) (bool, error) {
+//	if updates.Exists(ns, kvRead.Key) {
+//		return false, nil
+//	}
 	committedVersion, err := v.db.GetVersion(ns, kvRead.Key)
 	if err != nil {
 		return false, err
@@ -200,9 +199,9 @@ func (v *Validator) validateKVRead(ns string, kvRead *kvrwset.KVRead, updates *p
 ////////////////////////////////////////////////////////////////////////////////
 /////                 Validation of range queries
 ////////////////////////////////////////////////////////////////////////////////
-func (v *Validator) validateRangeQueries(ns string, rangeQueriesInfo []*kvrwset.RangeQueryInfo, updates *privacyenabledstate.PubUpdateBatch) (bool, error) {
+func (v *Validator) validateRangeQueries(ns string, rangeQueriesInfo []*kvrwset.RangeQueryInfo) (bool, error) {
 	for _, rqi := range rangeQueriesInfo {
-		if valid, err := v.validateRangeQuery(ns, rqi, updates); !valid || err != nil {
+		if valid, err := v.validateRangeQuery(ns, rqi); !valid || err != nil {
 			return valid, err
 		}
 	}
@@ -213,7 +212,7 @@ func (v *Validator) validateRangeQueries(ns string, rangeQueriesInfo []*kvrwset.
 // checks whether the results of the range query are still the same when executed on the
 // statedb (latest state as of last committed block) + updates (prepared by the writes of preceding valid transactions
 // in the current block and yet to be committed as part of group commit at the end of the validation of the block)
-func (v *Validator) validateRangeQuery(ns string, rangeQueryInfo *kvrwset.RangeQueryInfo, updates *privacyenabledstate.PubUpdateBatch) (bool, error) {
+func (v *Validator) validateRangeQuery(ns string, rangeQueryInfo *kvrwset.RangeQueryInfo) (bool, error) {
 	logger.Debugf("validateRangeQuery: ns=%s, rangeQueryInfo=%s", ns, rangeQueryInfo)
 
 	// If during simulation, the caller had not exhausted the iterator so
@@ -221,7 +220,7 @@ func (v *Validator) validateRangeQuery(ns string, rangeQueryInfo *kvrwset.RangeQ
 	// but rather it is the last key seen by the caller and hence the combinedItr should include the endKey in the results.
 	includeEndKey := !rangeQueryInfo.ItrExhausted
 
-	combinedItr, err := newCombinedIterator(v.db, updates.UpdateBatch,
+	combinedItr, err := newCombinedIterator(v.db,
 		ns, rangeQueryInfo.StartKey, rangeQueryInfo.EndKey, includeEndKey)
 	if err != nil {
 		return false, err
@@ -242,20 +241,18 @@ func (v *Validator) validateRangeQuery(ns string, rangeQueryInfo *kvrwset.RangeQ
 ////////////////////////////////////////////////////////////////////////////////
 /////                 Validation of hashed read-set
 ////////////////////////////////////////////////////////////////////////////////
-func (v *Validator) validateNsHashedReadSets(ns string, collHashedRWSets []*rwsetutil.CollHashedRwSet,
-	updates *privacyenabledstate.HashedUpdateBatch) (bool, error) {
+func (v *Validator) validateNsHashedReadSets(ns string, collHashedRWSets []*rwsetutil.CollHashedRwSet) (bool, error) {
 	for _, collHashedRWSet := range collHashedRWSets {
-		if valid, err := v.validateCollHashedReadSet(ns, collHashedRWSet.CollectionName, collHashedRWSet.HashedRwSet.HashedReads, updates); !valid || err != nil {
+		if valid, err := v.validateCollHashedReadSet(ns, collHashedRWSet.CollectionName, collHashedRWSet.HashedRwSet.HashedReads); !valid || err != nil {
 			return valid, err
 		}
 	}
 	return true, nil
 }
 
-func (v *Validator) validateCollHashedReadSet(ns, coll string, kvReadHashes []*kvrwset.KVReadHash,
-	updates *privacyenabledstate.HashedUpdateBatch) (bool, error) {
+func (v *Validator) validateCollHashedReadSet(ns, coll string, kvReadHashes []*kvrwset.KVReadHash) (bool, error) {
 	for _, kvReadHash := range kvReadHashes {
-		if valid, err := v.validateKVReadHash(ns, coll, kvReadHash, updates); !valid || err != nil {
+		if valid, err := v.validateKVReadHash(ns, coll, kvReadHash); !valid || err != nil {
 			return valid, err
 		}
 	}
@@ -265,11 +262,7 @@ func (v *Validator) validateCollHashedReadSet(ns, coll string, kvReadHashes []*k
 // validateKVReadHash performs mvcc check for a hash of a key that is present in the private data space
 // i.e., it checks whether a key/version combination is already updated in the statedb (by an already committed block)
 // or in the updates (by a preceding valid transaction in the current block)
-func (v *Validator) validateKVReadHash(ns, coll string, kvReadHash *kvrwset.KVReadHash,
-	updates *privacyenabledstate.HashedUpdateBatch) (bool, error) {
-	if updates.Contains(ns, coll, kvReadHash.KeyHash) {
-		return false, nil
-	}
+func (v *Validator) validateKVReadHash(ns, coll string, kvReadHash *kvrwset.KVReadHash) (bool, error) {
 	committedVersion, err := v.db.GetKeyHashVersion(ns, coll, kvReadHash.KeyHash)
 	if err != nil {
 		return false, err

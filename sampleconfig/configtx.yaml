@@ -251,6 +251,9 @@ Orderer: &OrdererDefaults
         # bytes.
         PreferredMaxBytes: 512 KB
 
+        # Maximum number of distinct keys allowed per block
+        MaxUniqueKeys: 1024
+
     # Max Channels is the maximum number of channels to allow on the ordering
     # network. When set to 0, this implies no maximum number of channels.
     MaxChannels: 0

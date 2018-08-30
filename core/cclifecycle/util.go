@@ -9,6 +9,7 @@ package cc
 import (
 	"os"
 	"strings"
+	"math"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/common/chaincode"
@@ -82,7 +83,7 @@ func DeployedChaincodes(q Query, filter ChaincodePredicate, loadCollections bool
 
 	var res chaincode.MetadataSet
 	for _, cc := range chaincodes {
-		data, err := q.GetState("lscc", cc)
+		data, err := q.GetState("lscc", cc, uint64(math.MaxUint64))
 		if err != nil {
 			Logger.Error("Failed querying lscc namespace:", err)
 			return nil, errors.WithStack(err)
@@ -115,7 +116,7 @@ func DeployedChaincodes(q Query, filter ChaincodePredicate, loadCollections bool
 
 		if loadCollections {
 			key := privdata.BuildCollectionKVSKey(cc)
-			collectionData, err := q.GetState("lscc", key)
+			collectionData, err := q.GetState("lscc", key, uint64(math.MaxUint64))
 			if err != nil {
 				Logger.Errorf("Failed querying lscc namespace for %s: %v", key, err)
 				return nil, errors.WithStack(err)

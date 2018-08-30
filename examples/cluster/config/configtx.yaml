@@ -97,6 +97,8 @@ Orderer: &OrdererDefaults
         # max bytes will result in a batch larger than preferred max bytes.
         PreferredMaxBytes: 512 KB
 
+        MaxUniqueKeys: 1024
+
     Kafka:
         # Brokers: A list of Kafka brokers to which the orderer connects. Edit
         # this list to identify the brokers of the ordering service.

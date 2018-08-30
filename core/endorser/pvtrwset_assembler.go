@@ -11,6 +11,7 @@ package endorser
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/common/privdata"
@@ -34,7 +35,7 @@ type PvtRWSetAssembler interface {
 // to abstract minimum required functions set
 type CollectionConfigRetriever interface {
 	// GetState gets the value for given namespace and key. For a chaincode, the namespace corresponds to the chaincodeId
-	GetState(namespace string, key string) ([]byte, error)
+	GetState(namespace string, key string, height uint64) ([]byte, error)
 }
 
 type rwSetAssembler struct {
@@ -53,7 +54,7 @@ func (as *rwSetAssembler) AssemblePvtRWSet(privData *rwset.TxPvtReadWriteSet, tx
 	for _, pvtRwset := range privData.NsPvtRwset {
 		namespace := pvtRwset.Namespace
 		if _, found := txPvtRwSetWithConfig.CollectionConfigs[namespace]; !found {
-			cb, err := txsim.GetState("lscc", privdata.BuildCollectionKVSKey(namespace))
+			cb, err := txsim.GetState("lscc", privdata.BuildCollectionKVSKey(namespace), uint64(math.MaxUint64))
 			if err != nil {
 				return nil, errors.WithMessage(err, fmt.Sprintf("error while retrieving collection config for chaincode %#v", namespace))
 			}

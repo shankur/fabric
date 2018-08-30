@@ -126,22 +126,40 @@ func (s *SupportImpl) GetChaincodeDeploymentSpecFS(cds *pb.ChaincodeDeploymentSp
 func (s *SupportImpl) Execute(ctxt context.Context, cid, name, version, txid string, syscc bool, signedProp *pb.SignedProposal, prop *pb.Proposal, spec ccprovider.ChaincodeSpecGetter) (*pb.Response, *pb.ChaincodeEvent, error) {
 	cccid := ccprovider.NewCCContext(cid, name, version, txid, syscc, signedProp, prop)
 
-	switch spec.(type) {
-	case *pb.ChaincodeDeploymentSpec:
-		return s.ChaincodeSupport.Execute(ctxt, cccid, spec)
-	case *pb.ChaincodeInvocationSpec:
-		cis := spec.(*pb.ChaincodeInvocationSpec)
+	var err error
+	var res *pb.Response
+	var event *pb.ChaincodeEvent
 
-		// decorate the chaincode input
-		decorators := library.InitRegistry(library.Config{}).Lookup(library.Decoration).([]decoration.Decorator)
-		cis.ChaincodeSpec.Input.Decorations = make(map[string][]byte)
-		cis.ChaincodeSpec.Input = decoration.Apply(prop, cis.ChaincodeSpec.Input, decorators...)
-		cccid.ProposalDecorations = cis.ChaincodeSpec.Input.Decorations
+	numberOfAttempts := 0
 
-		return s.ChaincodeSupport.Execute(ctxt, cccid, cis)
-	default:
-		panic("programming error, unkwnown spec type")
+	for numberOfAttempts < 5 {
+		height, _ := s.GetLedgerHeight(cid)
+
+		switch spec.(type) {
+		case *pb.ChaincodeDeploymentSpec:
+			return s.ChaincodeSupport.Execute(ctxt, cccid, spec, height)
+		case *pb.ChaincodeInvocationSpec:
+			cis := spec.(*pb.ChaincodeInvocationSpec)
+
+			// decorate the chaincode input
+			decorators := library.InitRegistry(library.Config{}).Lookup(library.Decoration).([]decoration.Decorator)
+			cis.ChaincodeSpec.Input.Decorations = make(map[string][]byte)
+			cis.ChaincodeSpec.Input = decoration.Apply(prop, cis.ChaincodeSpec.Input, decorators...)
+			cccid.ProposalDecorations = cis.ChaincodeSpec.Input.Decorations
+
+			res, event, err = s.ChaincodeSupport.Execute(ctxt, cccid, cis, height)
+		default:
+			panic("programming error, unkwnown spec type")
+		}
+
+		if err == nil {
+			return res, event, err
+		}
+
+		numberOfAttempts += 1
 	}
+
+	return res, event, err
 }
 
 // GetChaincodeDefinition returns ccprovider.ChaincodeDefinition for the chaincode with the supplied name

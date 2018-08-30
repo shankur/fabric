@@ -34,7 +34,7 @@ func TestUtilsBasic(t *testing.T) {
 	basicTest(t, BlockDataHashingStructureValue())
 	basicTest(t, OrdererAddressesValue([]string{"foo:1", "bar:2"}))
 	basicTest(t, ConsensusTypeValue("foo"))
-	basicTest(t, BatchSizeValue(1, 2, 3))
+	basicTest(t, BatchSizeValue(1, 2, 3, 4))
 	basicTest(t, BatchTimeoutValue("1s"))
 	basicTest(t, ChannelRestrictionsValue(7))
 	basicTest(t, KafkaBrokersValue([]string{"foo:1", "bar:2"}))

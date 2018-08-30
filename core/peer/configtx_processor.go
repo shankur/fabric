@@ -8,6 +8,7 @@ package peer
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/core/ledger/customtx"
@@ -81,7 +82,7 @@ func persistConf(simulator ledger.TxSimulator, key string, config *common.Config
 }
 
 func retrievePersistedConf(queryExecuter ledger.QueryExecutor, key string) (*common.Config, error) {
-	serializedConfig, err := queryExecuter.GetState(peerNamespace, key)
+	serializedConfig, err := queryExecuter.GetState(peerNamespace, key, uint64(math.MaxUint64))
 	if err != nil {
 		return nil, err
 	}

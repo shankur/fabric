@@ -9,6 +9,7 @@ package ccprovider
 import (
 	"bytes"
 	"fmt"
+	"math"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/common/sysccprovider"
@@ -23,7 +24,7 @@ func IsChaincodeDeployed(chainid, ccName, ccVersion string, ccHash []byte, sccp 
 	defer qe.Done()
 
 	// XXX We are leaking details of the LSCC table structure to other parts of the code, and this is terrible
-	chaincodeDataBytes, err := qe.GetState("lscc", ccName)
+	chaincodeDataBytes, err := qe.GetState("lscc", ccName, uint64(math.MaxUint64))
 	if err != nil {
 		return false, fmt.Errorf("Could not retrieve state for chaincode %s on channel %s, error %s", ccName, chainid, err)
 	}

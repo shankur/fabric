@@ -58,6 +58,9 @@ PROJECT_NAME = hyperledger/fabric
 endif
 EXPERIMENTAL ?= true
 
+# registry address
+REGISTRY_ADDR = hail05:5000
+
 BUILD_DIR ?= .build
 
 ifeq ($(EXPERIMENTAL),true)
@@ -116,7 +119,7 @@ pkgmap.discover       := $(PKGNAME)/cmd/discover
 
 include docker-env.mk
 
-all: native docker checks
+all: native docker
 
 checks: basic-checks unit-test integration-test
 
@@ -431,6 +434,24 @@ docker-tag-latest: $(IMAGES:%=%-docker-tag-latest)
 %-docker-tag-latest:
 	$(eval TARGET = ${patsubst %-docker-tag-latest,%,${@}})
 	docker tag $(DOCKER_NS)/fabric-$(TARGET):$(DOCKER_TAG) $(DOCKER_NS)/fabric-$(TARGET):latest
+
+docker-tag-stable: $(IMAGES:%=%-docker-tag-stable)
+
+%-docker-tag-stable:
+	$(eval TARGET = ${patsubst %-docker-tag-stable,%,${@}})
+	docker tag $(DOCKER_NS)/fabric-$(TARGET):$(DOCKER_TAG) $(DOCKER_NS)/fabric-$(TARGET):stable
+
+docker-tag-local: $(IMAGES:%=%-docker-tag-local)
+
+%-docker-tag-local:
+	$(eval TARGET = ${patsubst %-docker-tag-local,%,${@}})
+	docker tag $(DOCKER_NS)/fabric-$(TARGET):$(DOCKER_TAG) $(REGISTRY_ADDR)/$(TARGET):local
+
+docker-push: $(IMAGES:%=%-docker-push)
+
+%-docker-push:
+	$(eval TARGET = ${patsubst %-docker-push,%,${@}})
+	docker push $(REGISTRY_ADDR)/$(TARGET):local
 
 .PHONY: clean
 clean: docker-clean unit-test-clean release-clean

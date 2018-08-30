@@ -11,6 +11,7 @@ package txvalidator
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/common/cauthdsl"
@@ -283,7 +284,7 @@ func (v *VsccValidatorImpl) getCDataForCC(chid, ccid string) (ccprovider.Chainco
 	}
 	defer qe.Done()
 
-	bytes, err := qe.GetState("lscc", ccid)
+	bytes, err := qe.GetState("lscc", ccid, uint64(math.MaxUint64))
 	if err != nil {
 		return nil, &commonerrors.VSCCInfoLookupFailureError{fmt.Sprintf("Could not retrieve state for chaincode %s, error %s", ccid, err)}
 	}

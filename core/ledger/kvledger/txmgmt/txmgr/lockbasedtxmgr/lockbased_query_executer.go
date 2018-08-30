@@ -18,7 +18,6 @@ package lockbasedtxmgr
 
 import (
 	"errors"
-
 	"github.com/hyperledger/fabric/common/ledger"
 )
 
@@ -35,8 +34,8 @@ func newQueryExecutor(txmgr *LockBasedTxMgr, txid string) *lockBasedQueryExecuto
 }
 
 // GetState implements method in interface `ledger.QueryExecutor`
-func (q *lockBasedQueryExecutor) GetState(ns string, key string) ([]byte, error) {
-	return q.helper.getState(ns, key)
+func (q *lockBasedQueryExecutor) GetState(ns string, key string, height uint64) ([]byte, error) {
+	return q.helper.getState(ns, key, height)
 }
 
 // GetStateMetadata implements method in interface `ledger.QueryExecutor`
@@ -45,8 +44,8 @@ func (q *lockBasedQueryExecutor) GetStateMetadata(namespace, key string) (map[st
 }
 
 // GetStateMultipleKeys implements method in interface `ledger.QueryExecutor`
-func (q *lockBasedQueryExecutor) GetStateMultipleKeys(namespace string, keys []string) ([][]byte, error) {
-	return q.helper.getStateMultipleKeys(namespace, keys)
+func (q *lockBasedQueryExecutor) GetStateMultipleKeys(namespace string, keys []string, height uint64) ([][]byte, error) {
+	return q.helper.getStateMultipleKeys(namespace, keys, height)
 }
 
 // GetStateRangeScanIterator implements method in interface `ledger.QueryExecutor`
@@ -63,8 +62,8 @@ func (q *lockBasedQueryExecutor) ExecuteQuery(namespace, query string) (ledger.R
 }
 
 // GetPrivateData implements method in interface `ledger.QueryExecutor`
-func (q *lockBasedQueryExecutor) GetPrivateData(namespace, collection, key string) ([]byte, error) {
-	return q.helper.getPrivateData(namespace, collection, key)
+func (q *lockBasedQueryExecutor) GetPrivateData(namespace, collection, key string, height uint64) ([]byte, error) {
+	return q.helper.getPrivateData(namespace, collection, key, height)
 }
 
 // GetPrivateDataMetadata implements method in interface `ledger.QueryExecutor`
@@ -73,8 +72,8 @@ func (q *lockBasedQueryExecutor) GetPrivateDataMetadata(namespace, collection, k
 }
 
 // GetPrivateDataMultipleKeys implements method in interface `ledger.QueryExecutor`
-func (q *lockBasedQueryExecutor) GetPrivateDataMultipleKeys(namespace, collection string, keys []string) ([][]byte, error) {
-	return q.helper.getPrivateDataMultipleKeys(namespace, collection, keys)
+func (q *lockBasedQueryExecutor) GetPrivateDataMultipleKeys(namespace, collection string, keys []string, height uint64) ([][]byte, error) {
+	return q.helper.getPrivateDataMultipleKeys(namespace, collection, keys, height)
 }
 
 // GetPrivateDataRangeScanIterator implements method in interface `ledger.QueryExecutor`

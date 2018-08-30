@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package chaincode
 
 import (
+	"math"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -18,7 +19,7 @@ import (
 
 // Executor is used to invoke chaincode.
 type Executor interface {
-	Execute(ctxt context.Context, cccid *ccprovider.CCContext, cis ccprovider.ChaincodeSpecGetter) (*pb.Response, *pb.ChaincodeEvent, error)
+	Execute(ctxt context.Context, cccid *ccprovider.CCContext, cis ccprovider.ChaincodeSpecGetter, height uint64) (*pb.Response, *pb.ChaincodeEvent, error)
 }
 
 // Lifecycle provides methods to invoke the lifecycle system chaincode.
@@ -48,7 +49,7 @@ func (l *Lifecycle) GetChaincodeDeploymentSpec(
 		},
 	}
 
-	res, _, err := l.Executor.Execute(ctx, cccid, invocationSpec)
+	res, _, err := l.Executor.Execute(ctx, cccid, invocationSpec, uint64(math.MaxUint64))
 	if err != nil {
 		return nil, errors.Wrapf(err, "getdepspec %s/%s failed", chainID, chaincodeID)
 	}
@@ -90,7 +91,7 @@ func (l *Lifecycle) GetChaincodeDefinition(
 			},
 		},
 	}
-	res, _, err := l.Executor.Execute(ctx, cccid, invocationSpec)
+	res, _, err := l.Executor.Execute(ctx, cccid, invocationSpec, uint64(math.MaxUint64))
 	if err != nil {
 		return nil, errors.Wrapf(err, "getccdata %s/%s failed", chainID, chaincodeID)
 	}

@@ -14,10 +14,10 @@ import (
 // State defines interaction with the world state
 type State interface {
 	// GetPrivateDataMultipleKeys gets the values for the multiple private data items in a single call
-	GetPrivateDataMultipleKeys(namespace, collection string, keys []string) ([][]byte, error)
+	GetPrivateDataMultipleKeys(namespace, collection string, keys []string, height uint64) ([][]byte, error)
 
 	// GetStateMultipleKeys gets the values for multiple keys in a single call
-	GetStateMultipleKeys(namespace string, keys []string) ([][]byte, error)
+	GetStateMultipleKeys(namespace string, keys []string, height uint64) ([][]byte, error)
 
 	// GetTransientByTXID gets the values private data associated with the given txID
 	GetTransientByTXID(txID string) ([]*rwset.TxPvtReadWriteSet, error)

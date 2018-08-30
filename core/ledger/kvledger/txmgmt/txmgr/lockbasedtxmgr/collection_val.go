@@ -7,7 +7,7 @@ package lockbasedtxmgr
 
 import (
 	"fmt"
-
+	"math"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/common/privdata"
 	"github.com/hyperledger/fabric/protos/common"
@@ -46,7 +46,7 @@ func (v *collNameValidator) validateCollName(ns, coll string) error {
 
 func (v *collNameValidator) retrieveCollConfigFromStateDB(ns string) (*common.CollectionConfigPackage, error) {
 	logger.Debugf("retrieveCollConfigFromStateDB() begin - ns=[%s]", ns)
-	configPkgBytes, err := v.queryHelper.getState(lsccNamespace, constructCollectionConfigKey(ns))
+	configPkgBytes, err := v.queryHelper.getState(lsccNamespace, constructCollectionConfigKey(ns), uint64(math.MaxUint64))
 	if err != nil {
 		return nil, err
 	}

@@ -90,11 +90,11 @@ type ValidatedLedger interface {
 // latest state, historical state and on the intersection of state and transactions
 type QueryExecutor interface {
 	// GetState gets the value for given namespace and key. For a chaincode, the namespace corresponds to the chaincodeId
-	GetState(namespace string, key string) ([]byte, error)
+	GetState(namespace string, key string, height uint64) ([]byte, error)
 	// GetStateMetadata returns the metadata for given namespace and key
 	GetStateMetadata(namespace, key string) (map[string][]byte, error)
 	// GetStateMultipleKeys gets the values for multiple keys in a single call
-	GetStateMultipleKeys(namespace string, keys []string) ([][]byte, error)
+	GetStateMultipleKeys(namespace string, keys []string, height uint64) ([][]byte, error)
 	// GetStateRangeScanIterator returns an iterator that contains all the key-values between given key ranges.
 	// startKey is included in the results and endKey is excluded. An empty startKey refers to the first available key
 	// and an empty endKey refers to the last available key. For scanning all the keys, both the startKey and the endKey
@@ -107,11 +107,11 @@ type QueryExecutor interface {
 	// The returned ResultsIterator contains results of type *KV which is defined in protos/ledger/queryresult.
 	ExecuteQuery(namespace, query string) (commonledger.ResultsIterator, error)
 	// GetPrivateData gets the value of a private data item identified by a tuple <namespace, collection, key>
-	GetPrivateData(namespace, collection, key string) ([]byte, error)
+	GetPrivateData(namespace, collection, key string, height uint64) ([]byte, error)
 	// GetPrivateDataMetadata gets the metadata of a private data item identified by a tuple <namespace, collection, key>
 	GetPrivateDataMetadata(namespace, collection, key string) (map[string][]byte, error)
 	// GetPrivateDataMultipleKeys gets the values for the multiple private data items in a single call
-	GetPrivateDataMultipleKeys(namespace, collection string, keys []string) ([][]byte, error)
+	GetPrivateDataMultipleKeys(namespace, collection string, keys []string, height uint64) ([][]byte, error)
 	// GetPrivateDataRangeScanIterator returns an iterator that contains all the key-values between given key ranges.
 	// startKey is included in the results and endKey is excluded. An empty startKey refers to the first available key
 	// and an empty endKey refers to the last available key. For scanning all the keys, both the startKey and the endKey

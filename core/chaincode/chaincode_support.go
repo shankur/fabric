@@ -175,8 +175,8 @@ func createCCMessage(messageType pb.ChaincodeMessage_Type, cid string, txid stri
 }
 
 // Execute invokes chaincode and returns the original response.
-func (cs *ChaincodeSupport) Execute(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter) (*pb.Response, *pb.ChaincodeEvent, error) {
-	resp, err := cs.Invoke(ctxt, cccid, spec)
+func (cs *ChaincodeSupport) Execute(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter, height uint64) (*pb.Response, *pb.ChaincodeEvent, error) {
+	resp, err := cs.Invoke(ctxt, cccid, spec, height)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to execute transaction %s", cccid.TxID)
 	}
@@ -208,7 +208,7 @@ func (cs *ChaincodeSupport) Execute(ctxt context.Context, cccid *ccprovider.CCCo
 
 // Invoke will invoke chaincode and return the message containing the response.
 // The chaincode will be launched if it is not already running.
-func (cs *ChaincodeSupport) Invoke(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter) (*pb.ChaincodeMessage, error) {
+func (cs *ChaincodeSupport) Invoke(ctxt context.Context, cccid *ccprovider.CCContext, spec ccprovider.ChaincodeSpecGetter, height uint64) (*pb.ChaincodeMessage, error) {
 	var cctyp pb.ChaincodeMessage_Type
 	switch spec.(type) {
 	case *pb.ChaincodeDeploymentSpec:
@@ -236,11 +236,11 @@ func (cs *ChaincodeSupport) Invoke(ctxt context.Context, cccid *ccprovider.CCCon
 		return nil, errors.WithMessage(err, "failed to create chaincode message")
 	}
 
-	return cs.execute(ctxt, cccid, ccMsg)
+	return cs.execute(ctxt, cccid, ccMsg, height)
 }
 
 // execute executes a transaction and waits for it to complete until a timeout value.
-func (cs *ChaincodeSupport) execute(ctxt context.Context, cccid *ccprovider.CCContext, msg *pb.ChaincodeMessage) (*pb.ChaincodeMessage, error) {
+func (cs *ChaincodeSupport) execute(ctxt context.Context, cccid *ccprovider.CCContext, msg *pb.ChaincodeMessage, height uint64) (*pb.ChaincodeMessage, error) {
 	cname := cccid.GetCanonicalName()
 	chaincodeLogger.Debugf("canonical name: %s", cname)
 
@@ -250,7 +250,7 @@ func (cs *ChaincodeSupport) execute(ctxt context.Context, cccid *ccprovider.CCCo
 		return nil, errors.Errorf("unable to invoke chaincode %s", cname)
 	}
 
-	ccresp, err := handler.Execute(ctxt, cccid, msg, cs.ExecuteTimeout)
+	ccresp, err := handler.Execute(ctxt, cccid, msg, cs.ExecuteTimeout, height)
 	if err != nil {
 		return nil, errors.WithMessage(err, fmt.Sprintf("error sending"))
 	}

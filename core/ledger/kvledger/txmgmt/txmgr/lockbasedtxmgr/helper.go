@@ -37,7 +37,7 @@ func newQueryHelper(txmgr *LockBasedTxMgr, rwsetBuilder *rwsetutil.RWSetBuilder)
 	return helper
 }
 
-func (h *queryHelper) getState(ns string, key string) ([]byte, error) {
+func (h *queryHelper) getState(ns string, key string, height uint64) ([]byte, error) {
 	if err := h.checkDone(); err != nil {
 		return nil, err
 	}
@@ -46,13 +46,19 @@ func (h *queryHelper) getState(ns string, key string) ([]byte, error) {
 		return nil, err
 	}
 	val, ver := decomposeVersionedValue(versionedValue)
+	if ver != nil {
+		if ver.BlockNum >= height {
+			err := fmt.Errorf("Reading block num %d and height %d", ver.BlockNum, height)
+	                return nil, err
+		}
+	}
 	if h.rwsetBuilder != nil {
 		h.rwsetBuilder.AddToReadSet(ns, key, ver)
 	}
 	return val, nil
 }
 
-func (h *queryHelper) getStateMultipleKeys(namespace string, keys []string) ([][]byte, error) {
+func (h *queryHelper) getStateMultipleKeys(namespace string, keys []string, height uint64) ([][]byte, error) {
 	if err := h.checkDone(); err != nil {
 		return nil, err
 	}
@@ -60,9 +66,16 @@ func (h *queryHelper) getStateMultipleKeys(namespace string, keys []string) ([][
 	if err != nil {
 		return nil, nil
 	}
+
 	values := make([][]byte, len(versionedValues))
 	for i, versionedValue := range versionedValues {
 		val, ver := decomposeVersionedValue(versionedValue)
+		if ver != nil {
+			if ver.BlockNum >= height {
+				err := fmt.Errorf("Reading block num %d and height %d", ver.BlockNum, height)
+		                return nil, err
+			}
+		}
 		if h.rwsetBuilder != nil {
 			h.rwsetBuilder.AddToReadSet(namespace, keys[i], ver)
 		}
@@ -95,7 +108,7 @@ func (h *queryHelper) executeQuery(namespace, query string) (commonledger.Result
 	return &queryResultsItr{DBItr: dbItr, RWSetBuilder: h.rwsetBuilder}, nil
 }
 
-func (h *queryHelper) getPrivateData(ns, coll, key string) ([]byte, error) {
+func (h *queryHelper) getPrivateData(ns, coll, key string, height uint64) ([]byte, error) {
 	if err := h.validateCollName(ns, coll); err != nil {
 		return nil, err
 	}
@@ -112,6 +125,12 @@ func (h *queryHelper) getPrivateData(ns, coll, key string) ([]byte, error) {
 	}
 
 	val, ver := decomposeVersionedValue(versionedValue)
+	if ver != nil {
+		if ver.BlockNum >= height {
+			err := fmt.Errorf("Reading block num %d and height %d", ver.BlockNum, height)
+	                return nil, err
+		}
+	}
 
 	keyHash := util.ComputeStringHash(key)
 	if hashVersion, err = h.txmgr.db.GetKeyHashVersion(ns, coll, keyHash); err != nil {
@@ -128,7 +147,7 @@ func (h *queryHelper) getPrivateData(ns, coll, key string) ([]byte, error) {
 	return val, nil
 }
 
-func (h *queryHelper) getPrivateDataMultipleKeys(ns, coll string, keys []string) ([][]byte, error) {
+func (h *queryHelper) getPrivateDataMultipleKeys(ns, coll string, keys []string, height uint64) ([][]byte, error) {
 	if err := h.validateCollName(ns, coll); err != nil {
 		return nil, err
 	}
@@ -142,6 +161,12 @@ func (h *queryHelper) getPrivateDataMultipleKeys(ns, coll string, keys []string)
 	values := make([][]byte, len(versionedValues))
 	for i, versionedValue := range versionedValues {
 		val, ver := decomposeVersionedValue(versionedValue)
+		if ver != nil {
+			if ver.BlockNum >= height {
+				err := fmt.Errorf("Reading block num %d and height %d", ver.BlockNum, height)
+		                return nil, err
+			}
+		}
 		if h.rwsetBuilder != nil {
 			h.rwsetBuilder.AddToHashedReadSet(ns, coll, keys[i], ver)
 		}
@@ -184,7 +209,7 @@ func (h *queryHelper) done() {
 	}
 
 	defer func() {
-		h.txmgr.commitRWLock.RUnlock()
+//		h.txmgr.commitRWLock.RUnlock()
 		h.doneInvoked = true
 		for _, itr := range h.itrs {
 			itr.Close()
