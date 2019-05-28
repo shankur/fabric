@@ -1,6 +1,6 @@
 
 # Hyperledger Fabric++
-All rights reserved. Big Data Analytics Group, Saarland University accepted at ACM SIGMOD 2019.
+All rights reserved. Big Data Analytics Group, Saarland University. Work accepted at ACM SIGMOD 2019.
 
 **Note:** This is a _fork_ of original fabric repository which will include advanced transactional processing using mature database technologies.
 
